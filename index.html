@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-  <title>F/U Client Hub</title>
+  <title>Client Hub</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
     
@@ -33,8 +33,13 @@
       color: var(--text);
       min-height: 100vh;
       padding: 8px;
-      padding-bottom: 20px;
+      /* Safe area padding for Safari */
+      padding-top: calc(12px + env(safe-area-inset-top, 0px));
+      padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+      padding-left: calc(8px + env(safe-area-inset-left, 0px));
+      padding-right: calc(8px + env(safe-area-inset-right, 0px));
       overscroll-behavior: none;
+      -webkit-overflow-scrolling: touch;
     }
 
     /* Header */
@@ -370,7 +375,7 @@
     }
 
     /* ══════════════════════════════════════════════════════════════════
-       FOLLOW BOTTOM NAV - EXACTLY LIKE ORIGINAL INDEX.HTML
+       FOLLOW BOTTOM NAV - COMPACT VERSION
     ══════════════════════════════════════════════════════════════════ */
     
     #navControls {
@@ -381,46 +386,46 @@
       background: rgba(0, 0, 0, 0.97);
       backdrop-filter: blur(15px);
       -webkit-backdrop-filter: blur(15px);
-      padding: 12px;
+      padding: 8px 12px;
       border-top: 1px solid #333;
       z-index: 99999;
       display: none;
       flex-direction: column;
-      gap: 12px;
-      /* Safe area for notched phones */
-      padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+      gap: 8px;
+      /* Extra padding for Safari bottom bar */
+      padding-bottom: calc(10px + env(safe-area-inset-bottom, 20px));
     }
     
     #currentUsername {
       font-family: 'JetBrains Mono', monospace;
-      font-size: 24px;
+      font-size: 16px;
       text-align: center;
       color: var(--cyan);
       text-shadow: 0 0 10px var(--cyan);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      padding: 8px;
+      padding: 6px 10px;
       background: rgba(0, 255, 255, 0.1);
-      border-radius: 10px;
+      border-radius: 8px;
       border: 1px dashed var(--cyan);
     }
     
     .nav-row {
       display: flex;
-      gap: 10px;
+      gap: 8px;
       justify-content: center;
       align-items: center;
     }
     
     .nav-row button {
       flex: 1;
-      padding: 16px;
-      font-size: 18px;
+      padding: 10px 8px;
+      font-size: 13px;
       background: #111;
-      border: 2px solid var(--cyan);
+      border: 1.5px solid var(--cyan);
       color: var(--cyan);
-      border-radius: 12px;
+      border-radius: 8px;
       font-weight: bold;
       cursor: pointer;
     }
@@ -430,22 +435,23 @@
       color: #000;
     }
     
-    /* Big checkbox like original */
+    /* Smaller checkbox */
     .nav-row label {
       display: flex;
       align-items: center;
       justify-content: center;
+      padding: 0 5px;
     }
     
     .nav-row label input[type="checkbox"] {
-      transform: scale(4.5);
+      transform: scale(2.5);
       accent-color: var(--cyan);
       cursor: pointer;
     }
     
     #igStatusBox {
-      width: 18px;
-      height: 18px;
+      width: 14px;
+      height: 14px;
       border-radius: 50%;
       background: gray;
       border: 2px solid #fff;
@@ -460,29 +466,29 @@
     /* Floating Counter */
     #floatingCounter {
       position: fixed;
-      bottom: 200px;
-      right: 16px;
-      width: 65px;
-      height: 65px;
+      bottom: 160px;
+      right: 12px;
+      width: 50px;
+      height: 50px;
       background: #000;
       color: var(--cyan);
       font-family: 'JetBrains Mono', monospace;
-      font-size: 28px;
+      font-size: 22px;
       font-weight: bold;
-      border: 4px solid var(--cyan);
+      border: 3px solid var(--cyan);
       border-radius: 50%;
       display: none;
       align-items: center;
       justify-content: center;
       z-index: 99999;
-      box-shadow: 0 0 20px var(--cyan);
+      box-shadow: 0 0 15px var(--cyan);
     }
     
     #floatingCounter.red {
       background: #8B0000;
       border-color: #ff0000;
       color: #fff;
-      box-shadow: 0 0 30px #ff0000;
+      box-shadow: 0 0 20px #ff0000;
     }
 
     /* Content Section */
@@ -771,8 +777,8 @@
       </div>
     </div>
     
-    <!-- Spacer for bottom nav -->
-    <div style="height: 220px;"></div>
+    <!-- Spacer for bottom nav + Safari URL bar -->
+    <div style="height: 200px;"></div>
   </section>
 
   <!-- ══════════════════════════════════════════════════════════════════
@@ -1533,39 +1539,132 @@ async function send2FAToSheet() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// IP & FRAUD
+// IP & FRAUD - iOS COMPATIBLE (from original ig-tool.html)
 // ═══════════════════════════════════════════════════════════════════════════
 
 let scamWindow = null;
 
-async function fetchIP() {
-  try {
-    const res = await fetch('https://api.ipify.org?format=json');
-    const data = await res.json();
-    if (userIP && userIP !== data.ip) document.getElementById('oldIP').textContent = userIP;
-    userIP = data.ip;
-    document.getElementById('currentIP').textContent = data.ip;
-    return data.ip;
-  } catch (e) {
-    document.getElementById('currentIP').textContent = 'Error';
-    return null;
+// Open scamalytics in reusable window (fallback)
+function openScamalytics(ip) {
+  const scamUrl = `https://scamalytics.com/ip/${ip}`;
+  
+  if (scamWindow && !scamWindow.closed) {
+    scamWindow.location.href = scamUrl;
+    scamWindow.focus();
+  } else {
+    scamWindow = window.open(scamUrl, 'scamalytics_window');
   }
 }
 
-// Refresh IP and auto-check fraud score
-async function refreshIP() {
+// Main refresh function - iOS FIXED (opens scamalytics BEFORE async if no API key)
+function refreshIP() {
+  const fraudScoreEl = document.getElementById('fraudScore');
+  const fraudRiskEl = document.getElementById('fraudRisk');
+  const fraudBox = document.getElementById('fraudBox');
+  
   document.getElementById('currentIP').textContent = '...';
-  document.getElementById('fraudScore').textContent = '...';
-  document.getElementById('fraudRisk').textContent = 'Loading';
+  fraudScoreEl.textContent = '...';
+  fraudRiskEl.textContent = 'Loading';
   
-  const ip = await fetchIP();
-  if (ip) await checkFraud();
+  const config = getCurrentClientConfig();
+  const username = config?.fraudUser;
+  const key = config?.fraudKey;
+  const hasApiKey = username && key;
   
-  toast('🔄 IP refreshed!');
+  // If NO API key, open scamalytics IMMEDIATELY (before async) - iOS fix!
+  if (!hasApiKey) {
+    const ipToUse = userIP || 'check';
+    openScamalytics(ipToUse);
+  }
+  
+  // Now do async stuff
+  fetch('https://api.ipify.org?format=json')
+    .then(res => res.json())
+    .then(ipData => {
+      const currentIp = ipData.ip;
+      
+      if (userIP && userIP !== currentIp) {
+        document.getElementById('oldIP').textContent = userIP;
+      }
+      userIP = currentIp;
+      document.getElementById('currentIP').textContent = currentIp;
+      
+      // If no API key, just update the scamalytics window with correct IP
+      if (!hasApiKey) {
+        openScamalytics(currentIp);
+        fraudScoreEl.textContent = '—';
+        fraudRiskEl.textContent = 'No API key';
+        toast('🔄 IP refreshed!');
+        return Promise.resolve(null);
+      }
+      
+      // Try API check
+      const apiUrl = `https://api11.scamalytics.com/v3/${username}?key=${key}&ip=${currentIp}&format=json`;
+      const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`;
+      
+      return fetch(proxyUrl)
+        .then(response => {
+          if (!response.ok) throw new Error('API error');
+          return response.json();
+        })
+        .then(data => {
+          if (data.scamalytics?.status !== 'ok' || data.scamalytics?.error) {
+            throw new Error('Bad response');
+          }
+          
+          const score = data.scamalytics.scamalytics_score;
+          const risk = data.scamalytics.scamalytics_risk || 'Unknown';
+          const credits = data.scamalytics.credits?.remaining ?? '?';
+          
+          fraudScoreEl.textContent = score;
+          fraudRiskEl.innerHTML = `${risk}<br><span style="font-size:8px;opacity:0.7;">${credits} left</span>`;
+          
+          // Color based on score
+          let bg, border, color;
+          if (score <= 25) { 
+            bg = 'rgba(0,70,0,0.95)'; 
+            border = '#0f9';
+            color = '#0f9';
+          } else if (score <= 60) { 
+            bg = 'rgba(90,60,0,0.95)'; 
+            border = '#ff9800';
+            color = '#ff9800';
+          } else { 
+            bg = 'rgba(90,0,0,0.95)'; 
+            border = '#f55';
+            color = '#f55';
+          }
+          
+          fraudBox.style.background = bg;
+          fraudBox.style.borderColor = border;
+          fraudScoreEl.style.color = color;
+          
+          toast('🔄 IP refreshed!');
+        })
+        .catch(err => {
+          // API FAILED - Open scamalytics as fallback!
+          console.error('API failed, opening scamalytics:', err);
+          openScamalytics(currentIp);
+          
+          fraudScoreEl.textContent = '!';
+          fraudRiskEl.textContent = 'API Error';
+          fraudBox.style.background = 'rgba(90,0,0,0.95)';
+          fraudBox.style.borderColor = '#f33';
+          
+          toast('🔄 IP refreshed!');
+        });
+    })
+    .catch(err => {
+      // IP fetch failed
+      console.error(err);
+      fraudScoreEl.textContent = '!';
+      fraudRiskEl.textContent = 'Network Error';
+      fraudBox.style.background = 'rgba(90,0,0,0.95)';
+    });
 }
 
-// Rotate IP (for proxy users) and auto-check fraud
-async function rotateIP() {
+// Rotate IP (for proxy users) - also iOS compatible
+function rotateIP() {
   const config = getCurrentClientConfig();
   const url = config?.rotateUrl;
   
@@ -1573,86 +1672,107 @@ async function rotateIP() {
   document.getElementById('fraudScore').textContent = '...';
   document.getElementById('fraudRisk').textContent = 'Loading';
   
-  if (url) {
-    try {
-      fetch(url).catch(() => {});
-      await new Promise(r => setTimeout(r, 3000));
-    } catch (e) {}
-  }
+  const username = config?.fraudUser;
+  const key = config?.fraudKey;
+  const hasApiKey = username && key;
   
-  const ip = await fetchIP();
-  if (ip) await checkFraud();
-  
-  toast(url ? '📡 IP rotated!' : '🔄 IP refreshed!');
-}
-
-// Keep for manual trigger if needed
-async function refreshAndCheckFraud() {
-  await refreshIP();
-}
-
-// Open scamalytics in reusable window (fallback)
-function openScamalytics(ip) {
-  const url = `https://scamalytics.com/ip/${ip}`;
-  if (scamWindow && !scamWindow.closed) { scamWindow.location.href = url; scamWindow.focus(); }
-  else scamWindow = window.open(url, 'scamalytics_window');
-}
-
-// Check fraud score - uses API if available, falls back to website
-async function checkFraud() {
-  const config = getCurrentClientConfig();
-  const ip = userIP || await fetchIP();
-  if (!ip) {
-    document.getElementById('fraudScore').textContent = '!';
-    document.getElementById('fraudRisk').textContent = 'No IP';
-    return;
-  }
-  
-  const hasApiKey = config?.fraudUser && config?.fraudKey;
-  
-  // If no API key, open scamalytics website as fallback
+  // If NO API key, open scamalytics IMMEDIATELY - iOS fix!
   if (!hasApiKey) {
-    openScamalytics(ip);
-    document.getElementById('fraudScore').textContent = '—';
-    document.getElementById('fraudRisk').textContent = 'Check website';
-    return;
+    const ipToUse = userIP || 'check';
+    openScamalytics(ipToUse);
   }
   
-  // Try API
-  try {
-    const apiUrl = `https://api11.scamalytics.com/v3/${config.fraudUser}?key=${config.fraudKey}&ip=${ip}&format=json`;
-    const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(apiUrl)}`);
-    const data = await res.json();
-    
-    if (data.scamalytics?.status === 'ok' && !data.scamalytics?.error) {
-      const score = data.scamalytics.scamalytics_score;
-      document.getElementById('fraudScore').textContent = score;
-      document.getElementById('fraudRisk').innerHTML = `${data.scamalytics.scamalytics_risk || 'Unknown'}<br><span style="font-size:8px;">${data.scamalytics.credits?.remaining ?? '?'} left</span>`;
-      
-      // Color based on score
-      const box = document.getElementById('fraudBox');
-      const scoreEl = document.getElementById('fraudScore');
-      if (score <= 25) { 
-        box.style.borderColor = 'var(--accent)'; 
-        scoreEl.style.color = 'var(--accent)'; 
-      } else if (score <= 60) { 
-        box.style.borderColor = '#ff9800'; 
-        scoreEl.style.color = '#ff9800'; 
-      } else { 
-        box.style.borderColor = '#f44336'; 
-        scoreEl.style.color = '#f44336'; 
-      }
-    } else {
-      throw new Error('API error');
-    }
-  } catch (e) {
-    // API failed - fallback to website
-    console.error('Fraud API failed:', e);
-    openScamalytics(ip);
-    document.getElementById('fraudScore').textContent = '!';
-    document.getElementById('fraudRisk').textContent = 'API Error';
+  // If we have rotation URL, call it first
+  if (url) {
+    fetch(url).catch(() => {});
   }
+  
+  // Wait for rotation then check IP
+  setTimeout(() => {
+    fetch('https://api.ipify.org?format=json')
+      .then(res => res.json())
+      .then(ipData => {
+        const currentIp = ipData.ip;
+        
+        if (userIP && userIP !== currentIp) {
+          document.getElementById('oldIP').textContent = userIP;
+        }
+        userIP = currentIp;
+        document.getElementById('currentIP').textContent = currentIp;
+        
+        // If no API key, update scamalytics window
+        if (!hasApiKey) {
+          openScamalytics(currentIp);
+          document.getElementById('fraudScore').textContent = '—';
+          document.getElementById('fraudRisk').textContent = 'No API key';
+          toast(url ? '📡 IP rotated!' : '🔄 IP refreshed!');
+          return;
+        }
+        
+        // Try API check
+        const apiUrl = `https://api11.scamalytics.com/v3/${username}?key=${key}&ip=${currentIp}&format=json`;
+        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`;
+        
+        fetch(proxyUrl)
+          .then(response => response.json())
+          .then(data => {
+            if (data.scamalytics?.status !== 'ok' || data.scamalytics?.error) {
+              throw new Error('Bad response');
+            }
+            
+            const score = data.scamalytics.scamalytics_score;
+            const risk = data.scamalytics.scamalytics_risk || 'Unknown';
+            const credits = data.scamalytics.credits?.remaining ?? '?';
+            const fraudBox = document.getElementById('fraudBox');
+            const fraudScoreEl = document.getElementById('fraudScore');
+            
+            fraudScoreEl.textContent = score;
+            document.getElementById('fraudRisk').innerHTML = `${risk}<br><span style="font-size:8px;opacity:0.7;">${credits} left</span>`;
+            
+            // Color based on score
+            if (score <= 25) { 
+              fraudBox.style.background = 'rgba(0,70,0,0.95)';
+              fraudBox.style.borderColor = '#0f9';
+              fraudScoreEl.style.color = '#0f9';
+            } else if (score <= 60) { 
+              fraudBox.style.background = 'rgba(90,60,0,0.95)';
+              fraudBox.style.borderColor = '#ff9800';
+              fraudScoreEl.style.color = '#ff9800';
+            } else { 
+              fraudBox.style.background = 'rgba(90,0,0,0.95)';
+              fraudBox.style.borderColor = '#f55';
+              fraudScoreEl.style.color = '#f55';
+            }
+            
+            toast(url ? '📡 IP rotated!' : '🔄 IP refreshed!');
+          })
+          .catch(err => {
+            // API failed - open scamalytics
+            console.error('API failed:', err);
+            openScamalytics(currentIp);
+            document.getElementById('fraudScore').textContent = '!';
+            document.getElementById('fraudRisk').textContent = 'API Error';
+            toast(url ? '📡 IP rotated!' : '🔄 IP refreshed!');
+          });
+      })
+      .catch(err => {
+        console.error(err);
+        document.getElementById('fraudScore').textContent = '!';
+        document.getElementById('fraudRisk').textContent = 'Network Error';
+      });
+  }, url ? 3000 : 0); // Wait 3s if rotating, 0 if just refreshing
 }
+
+// Initial IP fetch on page load
+fetch('https://api.ipify.org?format=json')
+  .then(res => res.json())
+  .then(data => {
+    userIP = data.ip;
+    document.getElementById('currentIP').textContent = data.ip;
+  })
+  .catch(() => {
+    document.getElementById('currentIP').textContent = 'Error';
+  });
 
 // ═══════════════════════════════════════════════════════════════════════════
 // UTILITY
