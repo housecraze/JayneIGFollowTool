@@ -1,0 +1,1701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <title>F/U Client Hub</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
+    
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    :root {
+      --bg: #0a0a0f;
+      --card: rgba(20, 20, 35, 0.9);
+      --border: rgba(100, 100, 150, 0.3);
+      --accent: #00d4aa;
+      --accent-dim: rgba(0, 212, 170, 0.15);
+      --pink: #e91e63;
+      --purple: #bb86fc;
+      --cyan: #0ff;
+      --text: #eee;
+      --text-dim: #888;
+    }
+    
+    html, body {
+      height: 100%;
+      overflow-x: hidden;
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: linear-gradient(135deg, #0a0a0f 0%, #1a1025 50%, #0a0a0f 100%);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 8px;
+      padding-bottom: 20px;
+      overscroll-behavior: none;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      background: var(--card);
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      margin-bottom: 12px;
+    }
+    
+    .logo {
+      font-size: 18px;
+      font-weight: 700;
+      background: linear-gradient(90deg, var(--accent), var(--purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: 1px;
+    }
+    
+    .client-select {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .client-select select {
+      background: rgba(0,0,0,0.5);
+      border: 1px solid var(--border);
+      color: var(--accent);
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    
+    .settings-btn {
+      width: 36px;
+      height: 36px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    /* Nav Tabs */
+    .nav-tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 12px;
+      padding: 6px;
+      background: var(--card);
+      border-radius: 14px;
+      border: 1px solid var(--border);
+    }
+    
+    .nav-tab {
+      flex: 1;
+      padding: 10px 8px;
+      background: transparent;
+      border: none;
+      color: var(--text-dim);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      border-radius: 10px;
+      transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .nav-tab span { font-size: 18px; }
+    .nav-tab.active { background: var(--accent); color: #000; }
+
+    /* Sections */
+    .section { display: none; }
+    .section.active { display: block; }
+
+    /* Glass Card */
+    .glass-card {
+      background: var(--card);
+      backdrop-filter: blur(16px);
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+    
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--purple);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Profile Grid */
+    .profile-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    
+    .profile-item {
+      background: rgba(60, 40, 100, 0.25);
+      border-radius: 10px;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+    }
+    
+    .profile-item label {
+      display: block;
+      font-size: 9px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    
+    .profile-item .value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--cyan);
+      word-break: break-all;
+      cursor: pointer;
+    }
+
+    /* 2FA */
+    .totp-display {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 16px;
+      background: rgba(0, 255, 255, 0.05);
+      border-radius: 12px;
+      border: 1px dashed var(--cyan);
+    }
+    
+    .totp-code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--cyan);
+      text-shadow: 0 0 10px var(--cyan);
+      letter-spacing: 4px;
+    }
+    
+    .totp-btn {
+      padding: 8px 14px;
+      background: rgba(0, 255, 255, 0.15);
+      border: 1px solid var(--cyan);
+      color: var(--cyan);
+      border-radius: 8px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    /* Action Buttons */
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    
+    .action-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+    }
+    
+    .btn-nav { background: linear-gradient(135deg, #333, #222); color: #fff; }
+    .btn-ig { background: linear-gradient(135deg, #e91e63, #9c27b0); color: #fff; }
+    .btn-util { background: linear-gradient(135deg, #00897b, #00acc1); color: #fff; }
+    .btn-random { background: linear-gradient(135deg, #ff6f00, #ff8f00); color: #fff; }
+
+    /* IP & Fraud */
+    .ip-fraud-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    
+    .ip-box, .fraud-box {
+      flex: 1;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 12px;
+      padding: 12px;
+      text-align: center;
+      border: 1px solid var(--border);
+    }
+    
+    .ip-box .label, .fraud-box .label {
+      font-size: 9px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    
+    .ip-box .value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      color: var(--accent);
+      font-weight: 600;
+    }
+    
+    .fraud-box .value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 20px;
+      color: #ff5252;
+      font-weight: 700;
+    }
+    
+    .rotate-btn {
+      margin-top: 8px;
+      width: 100%;
+      padding: 8px;
+      background: var(--pink);
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* Follow Stats */
+    .follow-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    
+    .stat-box {
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 10px;
+      padding: 12px;
+      text-align: center;
+      border: 1px solid var(--border);
+    }
+    
+    .stat-box .num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+    
+    .stat-box .lbl {
+      font-size: 10px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    /* Follow List */
+    .follow-list {
+      max-height: 250px;
+      overflow-y: auto;
+      margin: 12px 0;
+    }
+    
+    .follow-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      background: rgba(0, 255, 255, 0.03);
+      border-radius: 10px;
+      margin-bottom: 6px;
+      border: 1px solid transparent;
+      cursor: pointer;
+    }
+    
+    .follow-row.active {
+      border-color: var(--cyan);
+      background: rgba(0, 255, 255, 0.12);
+    }
+    
+    .follow-row input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      accent-color: var(--accent);
+    }
+    
+    .follow-row .username {
+      flex: 1;
+      font-weight: 600;
+      color: var(--cyan);
+      font-size: 14px;
+    }
+    
+    .follow-row .status {
+      font-size: 10px;
+      color: var(--text-dim);
+      background: rgba(255,255,255,0.1);
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+    
+    .follow-row .ig-btn {
+      padding: 4px 10px;
+      background: var(--pink);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* ══════════════════════════════════════════════════════════════════
+       FOLLOW BOTTOM NAV - EXACTLY LIKE ORIGINAL INDEX.HTML
+    ══════════════════════════════════════════════════════════════════ */
+    
+    #navControls {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0, 0, 0, 0.97);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      padding: 12px;
+      border-top: 1px solid #333;
+      z-index: 99999;
+      display: none;
+      flex-direction: column;
+      gap: 12px;
+      /* Safe area for notched phones */
+      padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    }
+    
+    #currentUsername {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 24px;
+      text-align: center;
+      color: var(--cyan);
+      text-shadow: 0 0 10px var(--cyan);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      padding: 8px;
+      background: rgba(0, 255, 255, 0.1);
+      border-radius: 10px;
+      border: 1px dashed var(--cyan);
+    }
+    
+    .nav-row {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .nav-row button {
+      flex: 1;
+      padding: 16px;
+      font-size: 18px;
+      background: #111;
+      border: 2px solid var(--cyan);
+      color: var(--cyan);
+      border-radius: 12px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    
+    .nav-row button:active {
+      background: var(--cyan);
+      color: #000;
+    }
+    
+    /* Big checkbox like original */
+    .nav-row label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .nav-row label input[type="checkbox"] {
+      transform: scale(4.5);
+      accent-color: var(--cyan);
+      cursor: pointer;
+    }
+    
+    #igStatusBox {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: gray;
+      border: 2px solid #fff;
+      display: inline-block;
+      height: 20px;
+      border-radius: 50%;
+      background: gray;
+      border: 2px solid #fff;
+      flex-shrink: 0;
+    }
+
+    /* Floating Counter */
+    #floatingCounter {
+      position: fixed;
+      bottom: 200px;
+      right: 16px;
+      width: 65px;
+      height: 65px;
+      background: #000;
+      color: var(--cyan);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 28px;
+      font-weight: bold;
+      border: 4px solid var(--cyan);
+      border-radius: 50%;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 99999;
+      box-shadow: 0 0 20px var(--cyan);
+    }
+    
+    #floatingCounter.red {
+      background: #8B0000;
+      border-color: #ff0000;
+      color: #fff;
+      box-shadow: 0 0 30px #ff0000;
+    }
+
+    /* Content Section */
+    .content-box {
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 10px;
+      border: 1px solid var(--border);
+    }
+    
+    .content-box .title {
+      font-size: 11px;
+      color: var(--purple);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+    
+    .content-box .text {
+      font-size: 13px;
+      color: var(--text);
+      line-height: 1.5;
+      cursor: pointer;
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.9);
+      z-index: 999999;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    
+    .modal.show { display: flex; }
+    
+    .modal-content {
+      background: var(--card);
+      border: 1px solid var(--accent);
+      border-radius: 20px;
+      padding: 24px;
+      width: 100%;
+      max-width: 400px;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    
+    .modal-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--accent);
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    
+    .form-group {
+      margin-bottom: 16px;
+    }
+    
+    .form-group label {
+      display: block;
+      font-size: 11px;
+      color: var(--purple);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    
+    .form-group input {
+      width: 100%;
+      padding: 12px;
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 13px;
+    }
+    
+    .modal-btns {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    
+    .modal-btns button {
+      flex: 1;
+      padding: 14px;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+    }
+    
+    .btn-save { background: var(--accent); color: #000; }
+    .btn-cancel { background: rgba(255,255,255,0.1); color: var(--text); }
+
+    /* Toast */
+    #toast {
+      position: fixed;
+      bottom: 280px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.9);
+      color: var(--accent);
+      padding: 12px 24px;
+      border-radius: 30px;
+      border: 1px solid var(--cyan);
+      font-weight: bold;
+      font-size: 14px;
+      opacity: 0;
+      transition: opacity 0.3s;
+      z-index: 999999;
+      pointer-events: none;
+    }
+    
+    #toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="logo">F/U CLIENT HUB</div>
+    <div class="client-select">
+      <select id="clientSelector">
+        <option value="">Select Client</option>
+      </select>
+      <button class="settings-btn" onclick="openSettings()">⚙️</button>
+    </div>
+  </div>
+
+  <!-- NAV TABS -->
+  <div class="nav-tabs">
+    <button class="nav-tab active" data-tab="accounts" onclick="switchTab('accounts')">
+      <span>👤</span>Accounts
+    </button>
+    <button class="nav-tab" data-tab="follow" onclick="switchTab('follow')">
+      <span>📋</span>Follow
+    </button>
+    <button class="nav-tab" data-tab="content" onclick="switchTab('content')">
+      <span>✨</span>Content
+    </button>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       ACCOUNTS SECTION
+  ══════════════════════════════════════════════════════════════════ -->
+  <section id="accountsSection" class="section active">
+    
+    <!-- Profile Card -->
+    <div class="glass-card">
+      <div class="card-header">
+        <div class="card-title"><span>👤</span> Profile Details</div>
+        <div style="font-size:11px; color:var(--text-dim);">
+          <span id="profileIndex">0</span> / <span id="profileTotal">0</span>
+        </div>
+      </div>
+      <div class="profile-grid">
+        <div class="profile-item">
+          <label>Container #</label>
+          <div class="value" id="pContainer" onclick="copyField('pContainer')">—</div>
+        </div>
+        <div class="profile-item">
+          <label>Username</label>
+          <div class="value" id="pUsername" onclick="copyField('pUsername')">—</div>
+        </div>
+        <div class="profile-item">
+          <label>2FA Key</label>
+          <div class="value" id="p2FA" onclick="copyField('p2FA')">—</div>
+        </div>
+        <div class="profile-item">
+          <label>Password</label>
+          <div class="value" id="pPassword" onclick="copyField('pPassword')">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2FA -->
+    <div class="glass-card">
+      <div class="card-header">
+        <div class="card-title"><span>🔐</span> 2FA Authenticator</div>
+      </div>
+      <div class="totp-display">
+        <button class="totp-btn" onclick="pasteSecret()">📋</button>
+        <div class="totp-code" id="totpCode" onclick="copyTOTP()">------</div>
+        <div style="color:var(--text-dim);"><span id="totpTimer">30</span>s</div>
+        <button class="totp-btn" onclick="copyTOTP()">📑</button>
+      </div>
+      <div style="display:flex; gap:8px; margin-top:12px;">
+        <input type="text" id="secretInput" placeholder="2FA Secret" 
+               style="flex:1; padding:10px; background:rgba(0,0,0,0.4); border:1px solid var(--border); border-radius:8px; color:var(--cyan); font-family:'JetBrains Mono',monospace; font-size:12px;">
+        <button onclick="send2FAToSheet()" style="padding:10px 16px; background:var(--accent); border:none; border-radius:8px; color:#000; font-weight:600; cursor:pointer;">Save</button>
+      </div>
+    </div>
+
+    <!-- IP & Fraud -->
+    <div class="ip-fraud-row">
+      <div class="ip-box">
+        <div class="label">Current IP</div>
+        <div class="value" id="currentIP">Loading...</div>
+        <div style="font-size:9px; color:var(--text-dim); margin-top:4px;">Old: <span id="oldIP">—</span></div>
+        <button class="rotate-btn" onclick="refreshIP()" style="background:var(--accent);">Refresh + Scam</button>
+        <button class="rotate-btn" onclick="rotateIP()" style="background:var(--pink); margin-top:4px;">📡 Rotate IP</button>
+      </div>
+      <div class="fraud-box" id="fraudBox">
+        <div class="label">Fraud Score</div>
+        <div class="value" id="fraudScore">—</div>
+        <div id="fraudRisk" style="font-size:10px; color:var(--text-dim); margin-top:4px;">Tap Refresh</div>
+      </div>
+    </div>
+
+    <!-- Navigation Buttons -->
+    <div class="glass-card">
+      <div class="card-header">
+        <div class="card-title"><span>🎮</span> Navigation</div>
+      </div>
+      <div class="btn-row">
+        <button class="action-btn btn-nav" onclick="prevProfile()">⏮️</button>
+        <button class="action-btn btn-nav" onclick="nextProfile()">⏭️</button>
+        <button class="action-btn btn-nav" onclick="firstProfile()">🥇</button>
+        <button class="action-btn btn-nav" onclick="showProfileList()">📂</button>
+        <button class="action-btn btn-util" onclick="loadAllData()">🔄</button>
+      </div>
+      <div class="btn-row" style="margin-top:8px;">
+        <button class="action-btn btn-ig" onclick="copyField('pUsername'); openIG()">👤</button>
+        <button class="action-btn btn-ig" onclick="copyField('pPassword'); openIG()">🗝️</button>
+        <button class="action-btn btn-ig" onclick="runCreateCon()">✍️</button>
+        <button class="action-btn btn-ig" onclick="runSwitchCon()">📱</button>
+      </div>
+      <div class="btn-row" style="margin-top:8px;">
+        <button class="action-btn btn-random" onclick="randomCelebrity()">🎲</button>
+        <button class="action-btn btn-random" onclick="randomBio()">🌸</button>
+        <button class="action-btn btn-random" onclick="randomCaption()">📝</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       FOLLOW SECTION
+  ══════════════════════════════════════════════════════════════════ -->
+  <section id="followSection" class="section">
+    
+    <!-- Stats -->
+    <div class="follow-stats">
+      <div class="stat-box">
+        <div class="num" id="statTotal">0</div>
+        <div class="lbl">Total</div>
+      </div>
+      <div class="stat-box">
+        <div class="num" id="statDone">0</div>
+        <div class="lbl">Done</div>
+      </div>
+      <div class="stat-box">
+        <div class="num" id="statRemaining">0</div>
+        <div class="lbl">Left</div>
+      </div>
+    </div>
+
+    <!-- Search & Actions -->
+    <div class="glass-card" style="padding:12px;">
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <input type="text" id="followSearch" placeholder="Search..." 
+               style="flex:1; min-width:100px; padding:10px; background:rgba(0,0,0,0.4); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px;">
+        <input type="number" id="followLimit" placeholder="Limit" 
+               style="width:60px; padding:10px; background:rgba(0,0,0,0.4); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px;">
+        <button onclick="searchFollow()" style="padding:10px 14px; background:var(--accent); border:none; border-radius:8px; color:#000; font-weight:600; cursor:pointer;">Go</button>
+      </div>
+      <div style="display:flex; gap:6px; margin-top:10px;">
+        <button onclick="manualSync()" style="flex:1; padding:8px; background:rgba(255,255,255,0.1); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:11px; cursor:pointer;">Sync</button>
+        <button onclick="resetCounter()" style="flex:1; padding:8px; background:rgba(255,255,255,0.1); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:11px; cursor:pointer;">Reset</button>
+        <button onclick="copyCheckStates()" style="flex:1; padding:8px; background:rgba(255,255,255,0.1); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:11px; cursor:pointer;">Copy</button>
+        <button onclick="loadAllData()" style="flex:1; padding:8px; background:rgba(255,255,255,0.1); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:11px; cursor:pointer;">Fetch</button>
+      </div>
+    </div>
+
+    <!-- Follow List -->
+    <div class="glass-card">
+      <div class="card-header">
+        <div class="card-title"><span>📋</span> Follow List</div>
+      </div>
+      <div class="follow-list" id="followList">
+        <p style="color:var(--text-dim); text-align:center; padding:20px;">Configure API and click Fetch</p>
+      </div>
+    </div>
+    
+    <!-- Spacer for bottom nav -->
+    <div style="height: 220px;"></div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       CONTENT SECTION
+  ══════════════════════════════════════════════════════════════════ -->
+  <section id="contentSection" class="section">
+    
+    <div class="glass-card">
+      <div class="card-header">
+        <div class="card-title"><span>🌸</span> Random Bio</div>
+        <button onclick="randomBio()" style="padding:6px 12px; background:var(--purple); border:none; border-radius:6px; color:#fff; font-size:11px; cursor:pointer;">🎲 New</button>
+      </div>
+      <div class="content-box">
+        <div class="text" id="randomBioText" onclick="copyField('randomBioText')">Click "New" to generate</div>
+      </div>
+    </div>
+
+    <div class="glass-card">
+      <div class="card-header">
+        <div class="card-title"><span>📝</span> Random Caption</div>
+        <button onclick="randomCaption()" style="padding:6px 12px; background:var(--pink); border:none; border-radius:6px; color:#fff; font-size:11px; cursor:pointer;">🎲 New</button>
+      </div>
+      <div class="content-box">
+        <div class="text" id="randomCaptionText" onclick="copyField('randomCaptionText')">Click "New" to generate</div>
+      </div>
+    </div>
+
+    <div class="glass-card">
+      <div class="card-header">
+        <div class="card-title"><span>⭐</span> Random Celebrity</div>
+        <button onclick="randomCelebrity()" style="padding:6px 12px; background:var(--accent); border:none; border-radius:6px; color:#000; font-size:11px; cursor:pointer;">🎲 New</button>
+      </div>
+      <div class="content-box">
+        <div class="text" id="randomCelebText" onclick="copyField('randomCelebText')">Click "New" to get celebrity name</div>
+      </div>
+    </div>
+
+    <div class="follow-stats">
+      <div class="stat-box">
+        <div class="num" id="statBios">0</div>
+        <div class="lbl">Bios</div>
+      </div>
+      <div class="stat-box">
+        <div class="num" id="statCaptions">0</div>
+        <div class="lbl">Captions</div>
+      </div>
+      <div class="stat-box">
+        <div class="num" id="statCelebs">0</div>
+        <div class="lbl">Celebs</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       FOLLOW BOTTOM NAV - EXACTLY LIKE ORIGINAL INDEX.HTML
+  ══════════════════════════════════════════════════════════════════ -->
+  <div id="navControls">
+    <div id="currentUsername">—</div>
+    
+    <div class="nav-row">
+      <button onclick="prevFollow()">Prev</button>
+      <label><input type="checkbox" id="currentCheckbox" onchange="toggleCurrentCheckbox()"></label>
+      <button onclick="nextFollow()">Next</button>
+    </div>
+
+    <div class="nav-row">
+      <button onclick="window.open('https://instagram.com','_blank')">Open IG</button>
+      <button onclick="checkIG()">Check IG</button>
+      <span id="igStatusBox"></span>
+      <button onclick="openCurrentFollowIG()">Go IG</button>
+    </div>
+    
+    <div class="nav-row">
+      <button onclick="runNextContainer()" style="background:var(--accent); color:#000; border-color:var(--accent);">Next Cont</button>
+    </div>
+  </div>
+
+  <!-- FLOATING COUNTER -->
+  <div id="floatingCounter">0</div>
+
+  <!-- TOAST -->
+  <div id="toast">Ready</div>
+
+  <!-- SETTINGS MODAL -->
+  <div class="modal" id="settingsModal">
+    <div class="modal-content">
+      <div class="modal-title">⚙️ Configuration</div>
+      
+      <div class="form-group">
+        <label>Client Name</label>
+        <input type="text" id="cfgClientName" placeholder="e.g. Client 1">
+      </div>
+      
+      <div class="form-group">
+        <label>Main Sheet API URL</label>
+        <input type="text" id="cfgMainApi" placeholder="https://script.google.com/macros/s/...">
+      </div>
+      
+      <div class="form-group">
+        <label>2FA Update API URL (optional)</label>
+        <input type="text" id="cfg2faApi" placeholder="https://script.google.com/macros/s/...">
+      </div>
+      
+      <div class="form-group">
+        <label>IP Rotation URL (optional)</label>
+        <input type="text" id="cfgRotateUrl" placeholder="Rotation link">
+      </div>
+      
+      <div class="form-group">
+        <label>Scamalytics Username</label>
+        <input type="text" id="cfgFraudUser" placeholder="Username">
+      </div>
+      
+      <div class="form-group">
+        <label>Scamalytics API Key</label>
+        <input type="password" id="cfgFraudKey" placeholder="API Key">
+      </div>
+      
+      <div class="modal-btns">
+        <button class="btn-cancel" onclick="closeSettings()">Cancel</button>
+        <button class="btn-save" onclick="saveSettings()">Save Client</button>
+      </div>
+      
+      <div style="margin-top:20px; padding-top:16px; border-top:1px solid var(--border);">
+        <div class="card-title" style="margin-bottom:12px;"><span>📁</span> Saved Clients</div>
+        <div id="savedClientsList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROFILE LIST MODAL -->
+  <div class="modal" id="profileModal">
+    <div class="modal-content">
+      <div class="modal-title">📂 Select Profile</div>
+      <div id="profileListContainer" style="max-height:400px; overflow-y:auto;"></div>
+      <div class="modal-btns" style="margin-top:16px;">
+        <button class="btn-cancel" onclick="closeProfileModal()" style="width:100%;">Close</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// DATA STORAGE
+// ═══════════════════════════════════════════════════════════════════════════
+
+let profiles = [];
+let followList = [];
+let celebrities = [];
+let bios = [];
+let captions = [];
+
+let currentProfileIndex = 0;
+let currentFollowIndex = 0;
+let followCheckStates = {};
+let counterValue = 0;
+let countedSet = new Set();
+
+let userIP = '';
+let currentClientId = '';
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TAB SWITCHING
+// ═══════════════════════════════════════════════════════════════════════════
+
+function switchTab(tab) {
+  // Update tab buttons
+  document.querySelectorAll('.nav-tab').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.tab === tab);
+  });
+  
+  // Update sections
+  document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+  document.getElementById(tab + 'Section').classList.add('active');
+  
+  // Show/hide follow nav and counter
+  const navControls = document.getElementById('navControls');
+  const floatingCounter = document.getElementById('floatingCounter');
+  
+  if (tab === 'follow') {
+    navControls.style.display = 'flex';
+    floatingCounter.style.display = 'flex';
+  } else {
+    navControls.style.display = 'none';
+    floatingCounter.style.display = 'none';
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CONFIG MANAGEMENT
+// ═══════════════════════════════════════════════════════════════════════════
+
+function getClients() {
+  return JSON.parse(localStorage.getItem('clients') || '{}');
+}
+
+function saveClients(clients) {
+  localStorage.setItem('clients', JSON.stringify(clients));
+}
+
+function getCurrentClientConfig() {
+  if (!currentClientId) return null;
+  return getClients()[currentClientId];
+}
+
+function loadClientSelector() {
+  const select = document.getElementById('clientSelector');
+  const clients = getClients();
+  
+  select.innerHTML = '<option value="">Select Client</option>';
+  
+  Object.entries(clients).forEach(([id, config]) => {
+    const opt = document.createElement('option');
+    opt.value = id;
+    opt.textContent = config.name || id;
+    select.appendChild(opt);
+  });
+  
+  const lastClient = localStorage.getItem('lastClientId');
+  if (lastClient && clients[lastClient]) {
+    select.value = lastClient;
+    currentClientId = lastClient;
+    loadAllData();
+  }
+}
+
+document.getElementById('clientSelector').addEventListener('change', function() {
+  currentClientId = this.value;
+  localStorage.setItem('lastClientId', currentClientId);
+  if (currentClientId) loadAllData();
+});
+
+// Settings Modal
+function openSettings() {
+  const config = getCurrentClientConfig() || {};
+  document.getElementById('cfgClientName').value = config.name || '';
+  document.getElementById('cfgMainApi').value = config.mainApi || '';
+  document.getElementById('cfg2faApi').value = config.twofaApi || '';
+  document.getElementById('cfgRotateUrl').value = config.rotateUrl || '';
+  document.getElementById('cfgFraudUser').value = config.fraudUser || '';
+  document.getElementById('cfgFraudKey').value = config.fraudKey || '';
+  renderSavedClients();
+  document.getElementById('settingsModal').classList.add('show');
+}
+
+function closeSettings() {
+  document.getElementById('settingsModal').classList.remove('show');
+}
+
+function saveSettings() {
+  const name = document.getElementById('cfgClientName').value.trim();
+  if (!name) { toast('❌ Client name required'); return; }
+  
+  const clientId = currentClientId || 'client_' + Date.now();
+  const clients = getClients();
+  
+  clients[clientId] = {
+    name,
+    mainApi: document.getElementById('cfgMainApi').value.trim(),
+    twofaApi: document.getElementById('cfg2faApi').value.trim(),
+    rotateUrl: document.getElementById('cfgRotateUrl').value.trim(),
+    fraudUser: document.getElementById('cfgFraudUser').value.trim(),
+    fraudKey: document.getElementById('cfgFraudKey').value.trim()
+  };
+  
+  saveClients(clients);
+  currentClientId = clientId;
+  localStorage.setItem('lastClientId', clientId);
+  loadClientSelector();
+  document.getElementById('clientSelector').value = clientId;
+  closeSettings();
+  toast('✅ Client saved!');
+  loadAllData();
+}
+
+function renderSavedClients() {
+  const container = document.getElementById('savedClientsList');
+  const clients = getClients();
+  
+  if (!Object.keys(clients).length) {
+    container.innerHTML = '<p style="color:var(--text-dim); font-size:12px;">No clients saved yet</p>';
+    return;
+  }
+  
+  container.innerHTML = Object.entries(clients).map(([id, config]) => `
+    <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; background:rgba(0,0,0,0.3); border-radius:8px; margin-bottom:6px;">
+      <span style="font-weight:600; color:var(--accent);">${config.name}</span>
+      <div style="display:flex; gap:6px;">
+        <button onclick="editClient('${id}')" style="padding:4px 10px; background:var(--purple); border:none; border-radius:6px; color:#fff; font-size:11px; cursor:pointer;">Edit</button>
+        <button onclick="deleteClient('${id}')" style="padding:4px 10px; background:#f44336; border:none; border-radius:6px; color:#fff; font-size:11px; cursor:pointer;">×</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function editClient(id) {
+  currentClientId = id;
+  const config = getClients()[id];
+  document.getElementById('cfgClientName').value = config.name || '';
+  document.getElementById('cfgMainApi').value = config.mainApi || '';
+  document.getElementById('cfg2faApi').value = config.twofaApi || '';
+  document.getElementById('cfgRotateUrl').value = config.rotateUrl || '';
+  document.getElementById('cfgFraudUser').value = config.fraudUser || '';
+  document.getElementById('cfgFraudKey').value = config.fraudKey || '';
+}
+
+function deleteClient(id) {
+  if (!confirm('Delete this client?')) return;
+  const clients = getClients();
+  delete clients[id];
+  saveClients(clients);
+  if (currentClientId === id) {
+    currentClientId = '';
+    localStorage.removeItem('lastClientId');
+  }
+  loadClientSelector();
+  renderSavedClients();
+  toast('🗑️ Client deleted');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// DATA LOADING
+// ═══════════════════════════════════════════════════════════════════════════
+
+async function loadAllData() {
+  const config = getCurrentClientConfig();
+  if (!config || !config.mainApi) {
+    toast('⚠️ Configure API first');
+    return;
+  }
+  
+  try {
+    toast('🔄 Loading...');
+    const res = await fetch(config.mainApi);
+    const data = await res.json();
+    
+    if (data.profiles) profiles = data.profiles;
+    else if (Array.isArray(data)) profiles = data;
+    
+    if (data.followList) {
+      followList = data.followList;
+      followCheckStates = {};
+      followList.forEach((u, i) => { followCheckStates[i] = !!u.checked; });
+    }
+    
+    if (data.celebrities) celebrities = data.celebrities;
+    if (data.bios) bios = data.bios;
+    if (data.captions) captions = data.captions;
+    
+    // Restore indices
+    currentProfileIndex = Math.min(
+      parseInt(localStorage.getItem(`${currentClientId}_profileIndex`) || '0'),
+      profiles.length - 1
+    );
+    currentFollowIndex = Math.min(
+      parseInt(localStorage.getItem(`${currentClientId}_followIndex`) || '0'),
+      followList.length - 1
+    );
+    
+    if (currentProfileIndex < 0) currentProfileIndex = 0;
+    if (currentFollowIndex < 0) currentFollowIndex = 0;
+    
+    displayProfile();
+    renderFollowList();
+    updateStats();
+    
+    toast(`✅ Loaded ${profiles.length} profiles, ${followList.length} follows`);
+  } catch (err) {
+    console.error('Load error:', err);
+    toast('❌ Load failed');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PROFILE DISPLAY & NAVIGATION
+// ═══════════════════════════════════════════════════════════════════════════
+
+function displayProfile() {
+  if (!profiles.length) return;
+  const p = profiles[currentProfileIndex];
+  
+  document.getElementById('pContainer').textContent = p.container || p.name || '—';
+  document.getElementById('pUsername').textContent = p.username || p.oldusername || '—';
+  document.getElementById('p2FA').textContent = p.twofa_key || p.newusername || '—';
+  document.getElementById('pPassword').textContent = p.password || '—';
+  document.getElementById('profileIndex').textContent = currentProfileIndex + 1;
+  document.getElementById('profileTotal').textContent = profiles.length;
+  
+  document.getElementById('secretInput').value = (p.twofa_key || p.newusername || '').trim();
+  updateTOTP();
+  
+  localStorage.setItem(`${currentClientId}_profileIndex`, currentProfileIndex);
+}
+
+function prevProfile() { if (currentProfileIndex > 0) { currentProfileIndex--; displayProfile(); } }
+function nextProfile() { if (currentProfileIndex < profiles.length - 1) { currentProfileIndex++; displayProfile(); } }
+function firstProfile() { currentProfileIndex = 0; displayProfile(); toast('🥇 First profile'); }
+
+function showProfileList() {
+  const container = document.getElementById('profileListContainer');
+  container.innerHTML = profiles.map((p, i) => `
+    <div onclick="selectProfile(${i})" style="padding:12px; background:${i === currentProfileIndex ? 'var(--accent-dim)' : 'rgba(0,0,0,0.3)'}; border-radius:10px; margin-bottom:6px; cursor:pointer; border:1px solid ${i === currentProfileIndex ? 'var(--accent)' : 'transparent'};">
+      <div style="font-weight:600; color:var(--cyan);">${p.username || p.oldusername || 'Unknown'}</div>
+      <div style="font-size:11px; color:var(--text-dim);">${p.container || p.name || ''}</div>
+    </div>
+  `).join('');
+  document.getElementById('profileModal').classList.add('show');
+}
+
+function selectProfile(i) { currentProfileIndex = i; displayProfile(); closeProfileModal(); }
+function closeProfileModal() { document.getElementById('profileModal').classList.remove('show'); }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// FOLLOW LIST
+// ═══════════════════════════════════════════════════════════════════════════
+
+function renderFollowList() {
+  const container = document.getElementById('followList');
+  
+  if (!followList.length) {
+    container.innerHTML = '<p style="color:var(--text-dim); text-align:center; padding:20px;">No follow list data</p>';
+    return;
+  }
+  
+  container.innerHTML = followList.map((u, i) => `
+    <div class="follow-row ${i === currentFollowIndex ? 'active' : ''}" onclick="selectFollow(${i})">
+      <input type="checkbox" ${followCheckStates[i] ? 'checked' : ''} onclick="event.stopPropagation(); toggleCheck(${i})" data-index="${i}">
+      <button class="ig-btn" onclick="event.stopPropagation(); window.open('https://instagram.com/${u.username}','_blank')">IG</button>
+      <span class="username">${u.username || '???'}</span>
+      <span class="status">${u.status || ''}</span>
+    </div>
+  `).join('');
+  
+  updateFollowCurrent();
+}
+
+function selectFollow(i) {
+  currentFollowIndex = i;
+  localStorage.setItem(`${currentClientId}_followIndex`, currentFollowIndex);
+  
+  document.querySelectorAll('.follow-row').forEach((row, idx) => {
+    row.classList.toggle('active', idx === i);
+  });
+  
+  updateFollowCurrent();
+  
+  const activeRow = document.querySelector('.follow-row.active');
+  if (activeRow) activeRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function updateFollowCurrent() {
+  const user = followList[currentFollowIndex];
+  document.getElementById('currentUsername').textContent = user?.username || '—';
+  document.getElementById('currentCheckbox').checked = !!followCheckStates[currentFollowIndex];
+}
+
+function prevFollow() {
+  if (!followList.length) return;
+  syncToSheet();
+  
+  let start = currentFollowIndex;
+  do {
+    currentFollowIndex = currentFollowIndex <= 0 ? followList.length - 1 : currentFollowIndex - 1;
+  } while (followList[currentFollowIndex].status === 'Skip' && currentFollowIndex !== start);
+  
+  selectFollow(currentFollowIndex);
+  openCurrentFollowIG();
+}
+
+function nextFollow() {
+  if (!followList.length) return;
+  syncToSheet();
+  
+  let start = currentFollowIndex;
+  do {
+    currentFollowIndex = (currentFollowIndex + 1) % followList.length;
+  } while (followList[currentFollowIndex].status === 'Skip' && currentFollowIndex !== start);
+  
+  selectFollow(currentFollowIndex);
+  openCurrentFollowIG();
+}
+
+function openCurrentFollowIG() {
+  const user = followList[currentFollowIndex];
+  if (user?.username) window.open(`https://instagram.com/${user.username}`, '_blank');
+}
+
+function toggleCheck(i) {
+  followCheckStates[i] = !followCheckStates[i];
+  
+  if (followCheckStates[i] && !countedSet.has(i)) {
+    counterValue++;
+    countedSet.add(i);
+  } else if (!followCheckStates[i] && countedSet.has(i)) {
+    counterValue--;
+    countedSet.delete(i);
+  }
+  
+  updateCounter();
+  updateFollowCurrent();
+  syncToSheet();
+}
+
+function toggleCurrentCheckbox() {
+  const checked = document.getElementById('currentCheckbox').checked;
+  followCheckStates[currentFollowIndex] = checked;
+  
+  const listCb = document.querySelector(`.follow-row input[data-index="${currentFollowIndex}"]`);
+  if (listCb) listCb.checked = checked;
+  
+  if (checked && !countedSet.has(currentFollowIndex)) {
+    counterValue++;
+    countedSet.add(currentFollowIndex);
+  } else if (!checked && countedSet.has(currentFollowIndex)) {
+    counterValue--;
+    countedSet.delete(currentFollowIndex);
+  }
+  
+  updateCounter();
+  syncToSheet();
+}
+
+function searchFollow() {
+  const query = document.getElementById('followSearch').value.trim().toLowerCase();
+  if (!query) return;
+  
+  const found = followList.findIndex(u => u.username?.toLowerCase().includes(query));
+  if (found !== -1) {
+    selectFollow(found);
+    toast(`→ ${followList[found].username}`);
+  } else {
+    toast('Not found');
+  }
+}
+
+function updateStats() {
+  document.getElementById('profileIndex').textContent = currentProfileIndex + 1;
+  document.getElementById('profileTotal').textContent = profiles.length;
+  
+  const done = Object.values(followCheckStates).filter(v => v).length;
+  document.getElementById('statTotal').textContent = followList.length;
+  document.getElementById('statDone').textContent = done;
+  document.getElementById('statRemaining').textContent = followList.length - done;
+  
+  document.getElementById('statBios').textContent = bios.length;
+  document.getElementById('statCaptions').textContent = captions.length;
+  document.getElementById('statCelebs').textContent = celebrities.length;
+}
+
+function updateCounter() {
+  const el = document.getElementById('floatingCounter');
+  const limit = parseInt(document.getElementById('followLimit').value || '0');
+  
+  el.textContent = counterValue;
+  el.classList.remove('red');
+  
+  if (limit > 0 && counterValue >= limit) {
+    el.classList.add('red');
+  }
+}
+
+function resetCounter() {
+  counterValue = 0;
+  countedSet.clear();
+  updateCounter();
+  toast('Counter reset');
+}
+
+function copyCheckStates() {
+  const txt = followList.map((_, i) => followCheckStates[i] ? 'TRUE' : 'FALSE').join('\n');
+  navigator.clipboard.writeText(txt).then(() => toast('📋 Copied!'));
+}
+
+// Auto-sync with debounce
+let syncTimeout = null;
+function syncToSheet() {
+  if (syncTimeout) clearTimeout(syncTimeout);
+  
+  syncTimeout = setTimeout(async () => {
+    const config = getCurrentClientConfig();
+    if (!config || !config.mainApi) return;
+    
+    const updates = followList.map((u, i) => ({
+      username: u.username,
+      checked: !!followCheckStates[i],
+      row: i + 2
+    }));
+    
+    try {
+      const proxiedUrl = 'https://corsproxy.io/?' + encodeURIComponent(config.mainApi);
+      await fetch(proxiedUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'updateFollow', data: updates })
+      });
+    } catch (e) {
+      console.error('Sync failed:', e);
+    }
+  }, 500);
+}
+
+function manualSync() {
+  syncToSheet();
+  toast('✅ Synced');
+}
+
+// Check IG account exists
+async function checkIG() {
+  const box = document.getElementById('igStatusBox');
+  box.style.backgroundColor = 'gray';
+  
+  const username = followList[currentFollowIndex]?.username?.trim();
+  if (!username) { box.style.backgroundColor = 'red'; return; }
+  
+  try {
+    const res = await fetch(`https://www.instagram.com/api/v1/users/web_profile_info/?username=${username}`, {
+      method: 'GET',
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)',
+        'X-IG-App-ID': '936619743392459',
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': '*/*'
+      }
+    });
+    
+    if (res.status === 200) {
+      const data = await res.json();
+      box.style.backgroundColor = data?.data?.user?.id ? 'lime' : 'red';
+      box.style.boxShadow = data?.data?.user?.id ? '0 0 8px lime' : 'none';
+    } else {
+      box.style.backgroundColor = 'red';
+    }
+  } catch (e) {
+    box.style.backgroundColor = 'red';
+  }
+}
+
+function runNextContainer() {
+  window.location.href = 'shortcuts://run-shortcut?name=IG%20Switch';
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CONTENT
+// ═══════════════════════════════════════════════════════════════════════════
+
+function randomBio() {
+  if (!bios.length) { toast('No bios loaded'); return; }
+  const bio = bios[Math.floor(Math.random() * bios.length)];
+  document.getElementById('randomBioText').textContent = bio;
+  navigator.clipboard.writeText(bio);
+  toast('🌸 Bio copied!');
+}
+
+function randomCaption() {
+  if (!captions.length) { toast('No captions loaded'); return; }
+  const cap = captions[Math.floor(Math.random() * captions.length)];
+  document.getElementById('randomCaptionText').textContent = cap;
+  navigator.clipboard.writeText(cap);
+  toast('📝 Caption copied!');
+}
+
+function randomCelebrity() {
+  if (!celebrities.length) { toast('No celebrities loaded'); return; }
+  const celeb = celebrities[Math.floor(Math.random() * celebrities.length)];
+  document.getElementById('randomCelebText').textContent = celeb;
+  navigator.clipboard.writeText(celeb);
+  window.open('https://www.instagram.com/explore/search/keyword/?q=' + encodeURIComponent(celeb), '_blank');
+  toast('🎲 ' + celeb);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// 2FA / TOTP
+// ═══════════════════════════════════════════════════════════════════════════
+
+function base32toBytes(b32) {
+  b32 = (b32 || '').replace(/=+$/, '').replace(/[^A-Z2-7]/gi, '').toUpperCase();
+  const alph = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  let bits = 0, val = 0, bytes = [];
+  for (let c of b32) {
+    const idx = alph.indexOf(c);
+    if (idx === -1) continue;
+    val = (val << 5) | idx;
+    bits += 5;
+    if (bits >= 8) { bits -= 8; bytes.push((val >> bits) & 0xFF); }
+  }
+  return new Uint8Array(bytes);
+}
+
+async function generateTOTP(secret) {
+  const keyBytes = base32toBytes(secret);
+  if (!keyBytes.length) return null;
+  
+  const counter = Math.floor(Date.now() / 1000 / 30);
+  const buf = new ArrayBuffer(8);
+  new DataView(buf).setUint32(4, counter);
+  
+  const key = await crypto.subtle.importKey('raw', keyBytes, { name: 'HMAC', hash: 'SHA-1' }, false, ['sign']);
+  const sig = new Uint8Array(await crypto.subtle.sign('HMAC', key, buf));
+  
+  const offset = sig[sig.length - 1] & 0x0f;
+  const code = ((sig[offset] & 0x7f) << 24 | (sig[offset+1] & 0xff) << 16 | (sig[offset+2] & 0xff) << 8 | sig[offset+3] & 0xff) % 1000000;
+  return code.toString().padStart(6, '0');
+}
+
+async function updateTOTP() {
+  const secret = document.getElementById('secretInput').value.trim();
+  document.getElementById('totpTimer').textContent = 30 - (Math.floor(Date.now() / 1000) % 30);
+  
+  if (!secret) { document.getElementById('totpCode').textContent = '------'; return; }
+  document.getElementById('totpCode').textContent = await generateTOTP(secret) || 'invalid';
+}
+
+setInterval(updateTOTP, 1000);
+
+async function pasteSecret() {
+  try {
+    document.getElementById('secretInput').value = (await navigator.clipboard.readText()).trim();
+    updateTOTP();
+    toast('📋 Pasted!');
+  } catch (e) { toast('Paste blocked'); }
+}
+
+function copyTOTP() {
+  const code = document.getElementById('totpCode').textContent.trim();
+  if (code && code !== '------' && code !== 'invalid') {
+    navigator.clipboard.writeText(code);
+    toast('🔐 Code copied!');
+  }
+}
+
+async function send2FAToSheet() {
+  const config = getCurrentClientConfig();
+  const apiUrl = config?.twofaApi || config?.mainApi;
+  if (!apiUrl) { toast('❌ Configure API first'); return; }
+  
+  const newSecret = document.getElementById('secretInput').value.trim();
+  if (!newSecret) { toast('No secret entered'); return; }
+  
+  const currentUser = profiles[currentProfileIndex];
+  if (!currentUser?.id) { toast('Profile has no ID'); return; }
+  
+  try {
+    const res = await fetch(apiUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'update2FA', id: currentUser.id, twofa_key: newSecret })
+    });
+    const result = await res.json();
+    
+    if (result.success) {
+      toast('✅ 2FA saved!');
+      currentUser.twofa_key = newSecret;
+      document.getElementById('p2FA').textContent = newSecret;
+    } else {
+      toast('❌ ' + (result.message || 'Failed'));
+    }
+  } catch (err) { toast('❌ Network error'); }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// IP & FRAUD
+// ═══════════════════════════════════════════════════════════════════════════
+
+let scamWindow = null;
+
+async function fetchIP() {
+  try {
+    const res = await fetch('https://api.ipify.org?format=json');
+    const data = await res.json();
+    if (userIP && userIP !== data.ip) document.getElementById('oldIP').textContent = userIP;
+    userIP = data.ip;
+    document.getElementById('currentIP').textContent = data.ip;
+    return data.ip;
+  } catch (e) {
+    document.getElementById('currentIP').textContent = 'Error';
+    return null;
+  }
+}
+
+// Refresh IP and auto-check fraud score
+async function refreshIP() {
+  document.getElementById('currentIP').textContent = '...';
+  document.getElementById('fraudScore').textContent = '...';
+  document.getElementById('fraudRisk').textContent = 'Loading';
+  
+  const ip = await fetchIP();
+  if (ip) await checkFraud();
+  
+  toast('🔄 IP refreshed!');
+}
+
+// Rotate IP (for proxy users) and auto-check fraud
+async function rotateIP() {
+  const config = getCurrentClientConfig();
+  const url = config?.rotateUrl;
+  
+  document.getElementById('currentIP').textContent = '...';
+  document.getElementById('fraudScore').textContent = '...';
+  document.getElementById('fraudRisk').textContent = 'Loading';
+  
+  if (url) {
+    try {
+      fetch(url).catch(() => {});
+      await new Promise(r => setTimeout(r, 3000));
+    } catch (e) {}
+  }
+  
+  const ip = await fetchIP();
+  if (ip) await checkFraud();
+  
+  toast(url ? '📡 IP rotated!' : '🔄 IP refreshed!');
+}
+
+// Keep for manual trigger if needed
+async function refreshAndCheckFraud() {
+  await refreshIP();
+}
+
+// Open scamalytics in reusable window (fallback)
+function openScamalytics(ip) {
+  const url = `https://scamalytics.com/ip/${ip}`;
+  if (scamWindow && !scamWindow.closed) { scamWindow.location.href = url; scamWindow.focus(); }
+  else scamWindow = window.open(url, 'scamalytics_window');
+}
+
+// Check fraud score - uses API if available, falls back to website
+async function checkFraud() {
+  const config = getCurrentClientConfig();
+  const ip = userIP || await fetchIP();
+  if (!ip) {
+    document.getElementById('fraudScore').textContent = '!';
+    document.getElementById('fraudRisk').textContent = 'No IP';
+    return;
+  }
+  
+  const hasApiKey = config?.fraudUser && config?.fraudKey;
+  
+  // If no API key, open scamalytics website as fallback
+  if (!hasApiKey) {
+    openScamalytics(ip);
+    document.getElementById('fraudScore').textContent = '—';
+    document.getElementById('fraudRisk').textContent = 'Check website';
+    return;
+  }
+  
+  // Try API
+  try {
+    const apiUrl = `https://api11.scamalytics.com/v3/${config.fraudUser}?key=${config.fraudKey}&ip=${ip}&format=json`;
+    const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(apiUrl)}`);
+    const data = await res.json();
+    
+    if (data.scamalytics?.status === 'ok' && !data.scamalytics?.error) {
+      const score = data.scamalytics.scamalytics_score;
+      document.getElementById('fraudScore').textContent = score;
+      document.getElementById('fraudRisk').innerHTML = `${data.scamalytics.scamalytics_risk || 'Unknown'}<br><span style="font-size:8px;">${data.scamalytics.credits?.remaining ?? '?'} left</span>`;
+      
+      // Color based on score
+      const box = document.getElementById('fraudBox');
+      const scoreEl = document.getElementById('fraudScore');
+      if (score <= 25) { 
+        box.style.borderColor = 'var(--accent)'; 
+        scoreEl.style.color = 'var(--accent)'; 
+      } else if (score <= 60) { 
+        box.style.borderColor = '#ff9800'; 
+        scoreEl.style.color = '#ff9800'; 
+      } else { 
+        box.style.borderColor = '#f44336'; 
+        scoreEl.style.color = '#f44336'; 
+      }
+    } else {
+      throw new Error('API error');
+    }
+  } catch (e) {
+    // API failed - fallback to website
+    console.error('Fraud API failed:', e);
+    openScamalytics(ip);
+    document.getElementById('fraudScore').textContent = '!';
+    document.getElementById('fraudRisk').textContent = 'API Error';
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// UTILITY
+// ═══════════════════════════════════════════════════════════════════════════
+
+function copyField(id) {
+  const text = document.getElementById(id).textContent.trim();
+  if (text && text !== '—') { navigator.clipboard.writeText(text); toast('📋 Copied!'); }
+}
+
+function openIG() { window.open('https://instagram.com/', '_blank'); }
+
+function runCreateCon() {
+  const c = document.getElementById('pContainer').textContent.trim();
+  const u = document.getElementById('pUsername').textContent.trim();
+  navigator.clipboard.writeText(c + ' ' + u);
+  window.location.href = 'shortcuts://run-shortcut?name=CreateIGCon';
+}
+
+function runSwitchCon() { window.location.href = 'shortcuts://run-shortcut?name=IG%20Switch'; }
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════════════════
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadClientSelector();
+  fetchIP();
+  updateTOTP();
+  
+  document.getElementById('followSearch').addEventListener('keypress', e => {
+    if (e.key === 'Enter') searchFollow();
+  });
+});
+
+window.onclick = e => { if (e.target.classList.contains('modal')) e.target.classList.remove('show'); };
+</script>
+</body>
+</html>
